@@ -2,7 +2,7 @@ use crate::ControllerError;
 
 use super::{ControllerResult, FixType};
 pub trait Controller {
-    fn channels() -> usize;
+    fn channels(&self) -> usize;
 
     /// read data from physical device
     fn update(&mut self) -> ControllerResult<()>;
@@ -33,26 +33,22 @@ pub trait Controller {
 
 pub trait ControllerUtils {
     fn get_channel_result(&self, channel: usize) -> ControllerResult<usize>;
-    fn has_channel_instance(&self, channel: usize) -> bool;
-    fn has_channel(channel: usize) -> bool;
+    fn has_channel(&self, channel: usize) -> bool;
     fn read_and_fix_f32_max_min(&mut self, channel: usize) -> ControllerResult<f32>;
     fn read_and_fix_f32_mid(&mut self, channel: usize, k: f32) -> ControllerResult<f32>;
     #[must_use]
     fn update_and_fix(&mut self, k: f32) -> ControllerResult<()>;
 }
-impl<C: Controller> ControllerUtils for C {
-    fn has_channel(channel: usize) -> bool {
-        channel < Self::channels()
+impl<C: Controller + ?Sized> ControllerUtils for C {
+    fn has_channel(&self, channel: usize) -> bool {
+        channel < self.channels()
     }
     fn get_channel_result(&self, channel: usize) -> ControllerResult<usize> {
-        if Self::has_channel(channel) {
+        if self.has_channel(channel) {
             Ok(channel)
         } else {
             Err(ControllerError::NoSuchChannel(channel))
         }
-    }
-    fn has_channel_instance(&self, channel: usize) -> bool {
-        Self::has_channel(channel)
     }
 
     fn read_and_fix_f32_max_min(&mut self, channel: usize) -> ControllerResult<f32> {
@@ -82,7 +78,7 @@ impl<C: Controller> ControllerUtils for C {
 
     fn update_and_fix(&mut self, k: f32) -> ControllerResult<()> {
         self.update()?;
-        for channel in 0..Self::channels() {
+        for channel in 0..self.channels() {
             let raw = self.get_output_raw(channel)?;
             let max_old = self.get_channel_fix_max(channel)?;
             let min_old = self.get_channel_fix_min(channel)?;

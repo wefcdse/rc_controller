@@ -4,11 +4,7 @@ pub type Sm6 = super::basic_controller::BasicController<HidDevice, HidError, 8>;
 
 #[cfg(test)]
 #[test]
-fn s() {
-    use crate::Controller;
-
-    assert_eq!(Sm6::channels(), 8);
-}
+fn s() {}
 ////////////////////////
 #[allow(unused)]
 #[cfg(unused)]

@@ -5,6 +5,7 @@ mod physics;
 /// 四翼飞行器
 
 /// front = x, up = y
+#[derive(Clone, Debug)]
 pub struct Quadrotor {
     /// m/s
     pub velocity: Vec3,

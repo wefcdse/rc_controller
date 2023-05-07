@@ -3,23 +3,23 @@ use super::ControllerError;
 use super::ControllerResult;
 use super::ControllerUtils;
 use super::FixType;
-pub struct BasicFPVController<C: Controller> {
+pub struct BasicFPVController<'a> {
     throttle: Option<usize>, // 油门
     yaw: Option<usize>,      // 偏航
     pitch: Option<usize>,    // 俯仰
     roll: Option<usize>,     // 翻滚
-    controller: C,
+    controller: Box<dyn Controller + Send + 'a>,
     initiallized: bool,
 }
 
-impl<C: Controller> BasicFPVController<C> {
-    pub fn new(controller: C) -> Self {
+impl<'a> BasicFPVController<'a> {
+    pub fn new<C: Controller + Send + 'a>(controller: C) -> Self {
         Self {
             throttle: None,
             yaw: None,
             pitch: None,
             roll: None,
-            controller,
+            controller: Box::new(controller),
             initiallized: false,
         }
     }

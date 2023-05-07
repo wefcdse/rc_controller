@@ -7,7 +7,7 @@ pub trait ReadData {
     fn read_data(&self, buf: &mut [u8]) -> Result<usize, Self::Error>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BasicController<Device, Err, const CH: usize> {
     p: PhantomData<Err>,
     device: Device,
@@ -35,7 +35,7 @@ where
     }
 
     fn get_output_raw(&self, channel: usize) -> super::types::ControllerResult<u8> {
-        if Self::has_channel(channel) {
+        if self.has_channel(channel) {
             Ok(self.last_updated[channel])
         } else {
             Err(ControllerError::NoSuchChannel(channel))
@@ -50,7 +50,7 @@ where
     }
 
     fn get_output_f32(&self, channel: usize) -> super::types::ControllerResult<f32> {
-        if Self::has_channel(channel) {
+        if self.has_channel(channel) {
             match self.fix_type[channel] {
                 FixType::MaxMin => {
                     let o = self.last_updated[channel];
@@ -93,7 +93,7 @@ where
         min: Option<u8>,
         mid: Option<f32>,
     ) -> super::types::ControllerResult<()> {
-        if !Self::has_channel(channel) {
+        if !self.has_channel(channel) {
             Err(ControllerError::NoSuchChannel(channel))
         } else {
             match min {
@@ -112,12 +112,12 @@ where
         }
     }
 
-    fn channels() -> usize {
+    fn channels(&self) -> usize {
         Self::CHANNELS
     }
 
     fn get_channel_fix_max(&mut self, channel: usize) -> crate::ControllerResult<u8> {
-        if !Self::has_channel(channel) {
+        if !self.has_channel(channel) {
             Err(ControllerError::NoSuchChannel(channel))
         } else {
             Ok(self.max[channel])
@@ -125,7 +125,7 @@ where
     }
 
     fn get_channel_fix_min(&mut self, channel: usize) -> crate::ControllerResult<u8> {
-        if !Self::has_channel(channel) {
+        if !self.has_channel(channel) {
             Err(ControllerError::NoSuchChannel(channel))
         } else {
             Ok(self.min[channel])
@@ -133,7 +133,7 @@ where
     }
 
     fn get_channel_fix_mid(&mut self, channel: usize) -> crate::ControllerResult<f32> {
-        if !Self::has_channel(channel) {
+        if !self.has_channel(channel) {
             Err(ControllerError::NoSuchChannel(channel))
         } else {
             Ok(self.mid[channel])
@@ -141,7 +141,7 @@ where
     }
 
     fn set_fix_type(&mut self, channel: usize, fix_type: FixType) -> crate::ControllerResult<()> {
-        if !Self::has_channel(channel) {
+        if !self.has_channel(channel) {
             Err(ControllerError::NoSuchChannel(channel))
         } else {
             self.fix_type[channel] = fix_type;
@@ -216,7 +216,7 @@ mod test {
         for i in &mut a.fix_type {
             *i = FixType::MaxMin;
         }
-        assert_eq!(TestType::channels(), C);
+        assert_eq!(a.channels(), C);
         let _r = a.set_channel_fix(5, None, None, None).unwrap();
         assert_eq!(a.max, [u8::MAX; C]);
         assert_eq!(a.min, [u8::MIN; C]);
