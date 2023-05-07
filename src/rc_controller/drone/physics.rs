@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use super::*;
 
 impl Quadrotor {
@@ -48,21 +50,55 @@ impl Quadrotor {
 
     pub fn caculate_engine_force(&self) -> Vec3 {
         let up_unit = self.orientation.mul_vec3(Vec3::Y);
-        let v = self.velocity.dot(up_unit); // 向上方向的速度为正
         let throttle = self.last_input.0;
+        let throttle = throttle.max(0.0).min(1.0);
         assert!((0.0..=1.0).contains(&throttle));
 
-        let v_engine_out = throttle * self.motor_max_speed;
-        let v_real = (v_engine_out - v).max(0.0);
-        dbg!(v_engine_out);
-        dbg!(v_real);
+        up_unit * throttle * self.motor_max_force
+    }
 
-        let f = self.motor_max_force * v_real / self.motor_max_speed;
-        dbg!(f);
-        let f = f.min(self.motor_max_force);
-        dbg!(f);
+    /// m/s^2
+    pub fn caculate_total_force_except_g(&self) -> Vec3 {
+        self.caculate_air_resistance() + self.caculate_engine_force()
+    }
 
-        up_unit * f
+    /// m/s^2
+    pub fn caculate_acceleration(&self) -> Vec3 {
+        self.caculate_total_force_except_g() / self.mass + self.g
+    }
+
+    pub fn update_v(&mut self, dur: Duration) {
+        let time_s: Float = dur.as_secs_f64().into();
+        self.velocity += self.caculate_acceleration() * time_s;
+    }
+
+    pub fn update_orientation(&mut self, dur: Duration) {
+        let o = self.orientation;
+
+        let time_s: Float = dur.as_secs_f64().into();
+
+        let yaw_a = self.angular_velocity.0 * self.last_input.1;
+        let pitch_a = self.angular_velocity.1 * self.last_input.2;
+        let roll_a = self.angular_velocity.2 * self.last_input.3;
+
+        let x = self.orientation.mul_vec3(Vec3::X);
+        let y = self.orientation.mul_vec3(Vec3::Y);
+        let z = self.orientation.mul_vec3(Vec3::Z);
+
+        let yaw_o = Quat::from_axis_angle(y, yaw_a * time_s);
+        let pitch_o = Quat::from_axis_angle(z, pitch_a * time_s);
+        let roll_o = Quat::from_axis_angle(x, roll_a * time_s);
+
+        let o = yaw_o.mul_quat(o);
+        let o = pitch_o.mul_quat(o);
+        let o = roll_o.mul_quat(o);
+
+        self.orientation = o;
+    }
+
+    pub fn update_phy(&mut self, dur: Duration) {
+        self.update_v(dur);
+        self.update_orientation(dur);
     }
 }
 
@@ -82,16 +118,57 @@ mod t {
     fn caculate_air_resistance() {
         let mut q = Quadrotor::new(1.23, 2.13, 1.0, 1.0, (1.0, 1.0, 1.0));
         q.velocity = Vec3::new(1.0, 1.0, 0.0);
+
+        q.orientation =
+            Quat::from_axis_angle(Vec3::Z, std::f32::consts::PI as Float * 45.0 / 180.0);
         q.air_density = 2.0;
         q.last_input = (1.0, 0.0, 0.0, 0.0);
         println!("{}", q.caculate_air_resistance());
+        println!("{}", q.caculate_air_resistance().length());
     }
 
     #[test]
     fn caculate_engine_force() {
         let mut q = Quadrotor::default();
-        q.velocity = Vec3::new(2.0, -259.0, 0.0);
-        q.last_input = (0.0, 0.0, 0.0, 0.0);
+        q.velocity = Vec3::new(0.0, 30.0, 0.0);
+        q.last_input = (1.0, 0.0, 0.0, 0.0);
+        q.orientation =
+            Quat::from_axis_angle(Vec3::X, std::f32::consts::PI as Float * 45.0 / 180.0);
+        println!("{}", q.caculate_air_resistance());
+        println!("{}", q.caculate_air_resistance().length());
         println!("{}", q.caculate_engine_force());
+        println!("{}", q.caculate_engine_force().length());
+    }
+
+    #[test]
+    fn caculate_total_force() {
+        let mut q = Quadrotor::default();
+        q.velocity = Vec3::new(20.0, 0.0, 0.0);
+        q.last_input = (1.0, 0.0, 0.0, 0.0);
+        q.orientation =
+            Quat::from_axis_angle(Vec3::Z, std::f32::consts::PI as Float * -85.0 / 180.0);
+        println!("{}", q.caculate_air_resistance());
+        println!("{}", q.caculate_air_resistance().length());
+        println!("{}", q.caculate_engine_force());
+        println!("{}", q.caculate_engine_force().length());
+        println!("{}", q.caculate_total_force_except_g());
+        println!("{}", q.caculate_total_force_except_g().length());
+    }
+
+    #[test]
+    fn caculate_acceleration() {
+        let mut q = Quadrotor::default();
+        q.velocity = Vec3::new(0.0, 0.0, 0.0);
+        q.last_input = (1.0, 0.0, 0.0, 0.0);
+        q.orientation =
+            Quat::from_axis_angle(Vec3::Z, std::f32::consts::PI as Float * -0.0 / 180.0);
+        println!("{}", q.caculate_air_resistance());
+        println!("{}", q.caculate_air_resistance().length());
+        println!("{}", q.caculate_engine_force());
+        println!("{}", q.caculate_engine_force().length());
+        println!("{}", q.caculate_total_force_except_g());
+        println!("{}", q.caculate_total_force_except_g().length());
+        println!("{}", q.caculate_acceleration());
+        println!("{}", q.caculate_acceleration().length());
     }
 }

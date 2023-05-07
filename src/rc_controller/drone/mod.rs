@@ -3,20 +3,16 @@ pub use types::*;
 
 mod physics;
 /// 四翼飞行器
+
+/// front = x, up = y
 pub struct Quadrotor {
-    // front = x
-    /// caculated\
     /// m/s
     pub velocity: Vec3,
-    /// caculated\
     /// quaternion
     pub orientation: Quat,
-    /// caculated\
+
     /// m/s^2
-    pub acceleration: Vec3,
-    /// caculated\
-    /// N
-    pub force_except_gravity: Vec3,
+    pub g: Vec3,
 
     /// kg
     pub mass: Float,
@@ -32,6 +28,10 @@ pub struct Quadrotor {
     pub frontal_area_xyz: (Float, Float, Float),
     /// throttle(0.0 ~ 1.0), yaw(-1.0 ~ 1.0), pitch(-1.0 ~ 1.0), roll(-1.0 ~ 1.0)
     last_input: (Float, Float, Float, Float),
+    /// angular velocity\
+    /// in rad/s \
+    /// yaw pitch roll
+    pub angular_velocity: (Float, Float, Float),
 }
 
 impl Quadrotor {
@@ -45,8 +45,7 @@ impl Quadrotor {
         Self {
             velocity: Vec3::ZERO,
             orientation: Quat::from_axis_angle(Vec3::X, 0.0),
-            acceleration: Vec3::ZERO,
-            force_except_gravity: Vec3::ZERO,
+            g: Vec3::new(0.0, -9.8, 0.0),
             //
             mass,
             motor_max_speed,
@@ -56,6 +55,7 @@ impl Quadrotor {
             frontal_area_xyz,
             //
             last_input: (0.0, 0.0, 0.0, 0.0),
+            angular_velocity: (PI * 2.0, PI * 2.0, PI * 2.0),
         }
     }
 
@@ -73,6 +73,15 @@ impl Quadrotor {
         self.last_input = (throttle, yaw, pitch, roll);
         self.last_input
     }
+
+    pub fn update_input_typr(&mut self, typr: (f32, f32, f32, f32)) {
+        self.last_input = (
+            typr.0 as Float,
+            typr.1 as Float,
+            typr.2 as Float,
+            typr.3 as Float,
+        )
+    }
 }
 
 impl Default for Quadrotor {
@@ -80,10 +89,9 @@ impl Default for Quadrotor {
         Self {
             velocity: Vec3::ZERO,
             orientation: Quat::from_axis_angle(Vec3::X, 0.0),
-            acceleration: Vec3::ZERO,
-            force_except_gravity: Vec3::ZERO,
+            g: Vec3::new(0.0, -9.8, 0.0),
             //
-            mass: 1.0,
+            mass: 0.5,
             motor_max_speed: 25.0,
             motor_max_force: 10.0,
             air_resistance_coefficient: 1.0,
@@ -91,6 +99,7 @@ impl Default for Quadrotor {
             frontal_area_xyz: (0.2 * 0.05, 0.04, 0.2 * 0.05),
             //
             last_input: (0.0, 0.0, 0.0, 0.0),
+            angular_velocity: (PI * 2.0, PI * 2.0, PI * 2.0),
         }
     }
 }

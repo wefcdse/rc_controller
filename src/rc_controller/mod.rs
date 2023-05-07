@@ -13,3 +13,6 @@ pub mod SM600;
 
 #[cfg(feature = "drone")]
 pub mod drone;
+
+#[cfg(feature = "SM600")]
+pub mod simple_loader;

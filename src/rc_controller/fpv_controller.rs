@@ -153,4 +153,14 @@ impl<C: Controller> BasicFPVController<C> {
         let v = self.controller.get_output_f32(c)?;
         Ok(v * 2.0 - 1.0)
     }
+
+    /// throttle, yaw, pitch, roll
+    pub fn get_typr(&self) -> ControllerResult<(f32, f32, f32, f32)> {
+        Ok((
+            self.get_throttle()?,
+            self.get_yaw()?,
+            self.get_pitch()?,
+            self.get_roll()?,
+        ))
+    }
 }
