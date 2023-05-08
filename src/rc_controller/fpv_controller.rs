@@ -30,37 +30,25 @@ impl<'a> BasicFPVController<'a> {
         pitch: Option<usize>,    // 俯仰
         roll: Option<usize>,     // 翻滚
     ) -> ControllerResult<()> {
-        match throttle {
-            Some(v) => {
-                let v = self.controller.get_channel_result(v)?;
-                self.throttle = Some(v);
-                self.initiallized = false;
-            }
-            None => {}
+        if let Some(v) = throttle {
+            let v = self.controller.get_channel_result(v)?;
+            self.throttle = Some(v);
+            self.initiallized = false;
         }
-        match yaw {
-            Some(v) => {
-                let v = self.controller.get_channel_result(v)?;
-                self.yaw = Some(v);
-                self.initiallized = false;
-            }
-            None => {}
+        if let Some(v) = yaw {
+            let v = self.controller.get_channel_result(v)?;
+            self.yaw = Some(v);
+            self.initiallized = false;
         }
-        match pitch {
-            Some(v) => {
-                let v = self.controller.get_channel_result(v)?;
-                self.pitch = Some(v);
-                self.initiallized = false;
-            }
-            None => {}
+        if let Some(v) = pitch {
+            let v = self.controller.get_channel_result(v)?;
+            self.pitch = Some(v);
+            self.initiallized = false;
         }
-        match roll {
-            Some(v) => {
-                let v = self.controller.get_channel_result(v)?;
-                self.roll = Some(v);
-                self.initiallized = false;
-            }
-            None => {}
+        if let Some(v) = roll {
+            let v = self.controller.get_channel_result(v)?;
+            self.roll = Some(v);
+            self.initiallized = false;
         }
 
         Ok(())

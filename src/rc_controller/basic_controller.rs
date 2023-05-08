@@ -96,17 +96,14 @@ where
         if !self.has_channel(channel) {
             Err(ControllerError::NoSuchChannel(channel))
         } else {
-            match min {
-                Some(v) => self.min[channel] = v,
-                None => {}
+            if let Some(v) = min {
+                self.min[channel] = v
             };
-            match max {
-                Some(v) => self.max[channel] = v,
-                None => {}
+            if let Some(v) = max {
+                self.max[channel] = v
             };
-            match mid {
-                Some(v) => self.mid[channel] = v,
-                None => {}
+            if let Some(v) = mid {
+                self.mid[channel] = v
             };
             Ok(())
         }
