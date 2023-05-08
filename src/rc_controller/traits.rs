@@ -36,7 +36,6 @@ pub trait ControllerUtils {
     fn has_channel(&self, channel: usize) -> bool;
     fn read_and_fix_f32_max_min(&mut self, channel: usize) -> ControllerResult<f32>;
     fn read_and_fix_f32_mid(&mut self, channel: usize, k: f32) -> ControllerResult<f32>;
-    #[must_use]
     fn update_and_fix(&mut self, k: f32) -> ControllerResult<()>;
 }
 impl<C: Controller + ?Sized> ControllerUtils for C {
