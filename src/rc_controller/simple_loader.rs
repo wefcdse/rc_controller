@@ -14,7 +14,7 @@ pub fn simple_loader<'a>(time: f32) -> BasicFPVController<'a> {
         }
         let mut s = String::new();
         std::io::stdin().read_line(&mut s).unwrap();
-        let s: String = s.chars().filter(|s| s.is_digit(10)).collect();
+        let s: String = s.chars().filter(|s| s.is_ascii_digit()).collect();
         let n: usize = s.parse().unwrap();
         println!("{n}");
         let device = devices[n].open_device(&hid_api).unwrap();
@@ -54,7 +54,7 @@ pub fn simple_loader<'a>(time: f32) -> BasicFPVController<'a> {
                     mid,
                     c.get_output_raw(i).unwrap()
                 );
-                println!("");
+                println!();
             }
         }
 

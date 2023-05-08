@@ -71,7 +71,7 @@ where
                         v if v as f32 == mid => 0.5,
                         v if (v as f32) > mid => {
                             let d = max as f32 - mid;
-                            ((v as f32 - mid) as f32) / d * 0.5 + 0.5
+                            (v as f32 - mid) / d * 0.5 + 0.5
                         }
                         _ => panic!("why here?"),
                     })

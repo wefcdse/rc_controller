@@ -68,14 +68,14 @@ impl Quadrotor {
     }
 
     pub fn update_v(&mut self, dur: Duration) {
-        let time_s: Float = dur.as_secs_f64().into();
+        let time_s: Float = dur.as_secs_f64();
         self.velocity += self.caculate_acceleration() * time_s;
     }
 
     pub fn update_orientation(&mut self, dur: Duration) {
         let o = self.orientation;
 
-        let time_s: Float = dur.as_secs_f64().into();
+        let time_s: Float = dur.as_secs_f64();
 
         let yaw_a = self.angular_velocity.0 * self.last_input.1;
         let pitch_a = self.angular_velocity.1 * self.last_input.2;
